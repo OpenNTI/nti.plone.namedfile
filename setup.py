@@ -50,7 +50,6 @@ setup(
         'plone.schemaeditor',
         'plone.supermodel',
         'setuptools',
-        'zope.browserpage',
         'zope.component',
         'zope.copy',
         'zope.security',
