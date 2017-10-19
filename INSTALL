@@ -1,0 +1,13 @@
+plone.namedfile Installation
+----------------------------
+
+To install nti.plone.namedfile into the global Python environment (or a workingenv),
+using a traditional Zope 2 instance, you can do this:
+
+* When you're reading this you have probably already run
+  ``easy_install nti.plone.namedfile``.
+
+* Create a file called ``configure.zcml`` in your project the directory.  
+  The file should only contain this::
+
+    <include package="plone.namedfile" />
