@@ -1,13 +1,23 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from zope import schema
-from zope.interface import Interface
-from zope.schema.interfaces import IObject
+"""
+Externalization Interfaces
 
+"""
+
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+from zope import schema
+from zope import interface
+
+from zope.schema.interfaces import IObject
 
 HAVE_BLOBS = True
 
 
-class IFile(Interface):
+class IFile(interface.Interface):
 
     contentType = schema.BytesLine(
         title=u'Content Type',
@@ -26,43 +36,28 @@ class IFile(Interface):
     )
 
     def getSize():
-        """Return the byte-size of the data of the object."""
+        """
+        Return the byte-size of the data of the object.
+        """
 
 
 class IImage(IFile):
-    """This interface defines an Image that can be displayed.
+    """
+    This interface defines an Image that can be displayed.
     """
 
     def getImageSize():
-        """Return a tuple (x, y) that describes the dimensions of
+        """
+        Return a tuple (x, y) that describes the dimensions of
         the object.
         """
 
-
-class IImageScaleTraversable(Interface):
-    """Marker for items that should provide access to image scales for named
-    image fields via the @@images view.
-    """
-
-
-class IAvailableSizes(Interface):
-    """A callable returning a dictionary of scale name => (width, height)
-    """
-
-
-try:
-    from plone.app.imaging.interfaces import IStableImageScale
-except ImportError:
-    class IStableImageScale(Interface):
-        """ Marker for image scales when accessed with a UID-based URL.
-        These can be cached forever using the plone.stableResource ruleset.
-        """
-
-
 # Values
 
-class INamed(Interface):
-    """An item with a filename
+
+class INamed(interface.Interface):
+    """
+    An item with a filename
     """
 
     filename = schema.TextLine(title=u'Filename', required=False, default=None)
@@ -74,66 +69,48 @@ class INamedFile(INamed, IFile):
 
 
 class INamedImage(INamed, IImage):
-    """A non-BLOB image with a filename
+    """
+    A non-BLOB image with a filename
     """
 
 
 # Fields
 
-class INamedField(IObject):
-    """Base field type
+
+class IStorage(interface.Interface):
     """
-
-
-class INamedFileField(INamedField):
-    """Field for storing INamedFile objects.
-    """
-
-
-class INamedImageField(INamedField):
-    """Field for storing INamedImage objects.
-    """
-
-
-class IStorage(Interface):
-    """Store file data
+    Store file data
     """
 
     def store(data, blob):
-        """Store the data into the blob
+        """
+        Store the data into the blob
         Raises NonStorable if data is not storable.
         """
 
 
 class NotStorable(Exception):
-    """Data is not storable
+    """
+    Data is not storable
     """
 
 
 # Values
 
-class IBlobby(Interface):
-    """Marker interface for objects that support blobs.
+
+class IBlobby(interface.Interface):
+    """
+    Marker interface for objects that support blobs.
     """
 
 
 class INamedBlobFile(INamedFile, IBlobby):
-    """A BLOB file with a filename
+    """
+    A BLOB file with a filename
     """
 
 
 class INamedBlobImage(INamedImage, IBlobby):
-    """A BLOB image with a filename
     """
-
-
-# Fields
-
-class INamedBlobFileField(INamedFileField):
-    """Field for storing INamedBlobFile objects.
-    """
-
-
-class INamedBlobImageField(INamedImageField):
-    """Field for storing INamedBlobImage objects.
+    A BLOB image with a filename
     """
