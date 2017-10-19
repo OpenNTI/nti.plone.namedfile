@@ -1,3 +1,14 @@
+==============================
+ nti.plone.namedfile 
+==============================
+
+.. image:: https://travis-ci.org/NextThought/nti.plone.namedfile .svg?branch=master
+    :target: https://travis-ci.org/NextThought/nti.plone.namedfile 
+
+.. image:: https://coveralls.io/repos/github/NextThought/nti.plone.namedfile /badge.svg?branch=master
+    :target: https://coveralls.io/github/NextThought/nti.plone.namedfile ?branch=master
+
+
 Introduction
 ============
 
@@ -6,21 +17,12 @@ This package contains fields and wrapper objects for storing:
 * A file with a filename
 * An image with a filename
 
-Blob-based and non-blob-based types are provided. The blob-based types
-require the ZODB3 package to be at version 3.8.1 or later,
-and BLOBs to be configured in zope.conf.
-
-plone.supermodel handlers are registered.
-
-See the ``usage.rst`` doctest for more details.
-
+Blob-based and non-blob-based types are provided. 
 
 Source Code
 ===========
 
- Note: This packages is licensed under a *BSD license*. 
+ Note: This packages is licensed under a *Apache license*. 
  Please do not add dependencies on GPL code!
 
-Contributors please read the document `Process for Plone core's development <http://docs.plone.org/develop/plone-coredev/index.html>`_
-
-Sources are at the `Plone code repository hosted at Github <https://github.com/plone/plone.namedfile>`_.
+Sources are at the `Plone code repository hosted at Github <https://github.com/NextThought/nti.plone.namedfile>`_.

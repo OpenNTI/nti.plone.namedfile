@@ -1,4 +1,5 @@
-Changelog
+=========
+ Changes
 =========
 
 4.2.4 (unreleased)
