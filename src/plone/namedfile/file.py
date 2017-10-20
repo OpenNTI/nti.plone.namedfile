@@ -1,51 +1,67 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# The implementations in this file are largely borrowed
-# from zope.app.file and z3c.blobfile
-# and are licensed under the ZPL.
-from logging import getLogger
+"""
+The implementations in this file are largely borrowed
+from zope.app.file and z3c.blobfile
+and are licensed under the ZPL.
+
+.. $Id$
+"""
+
+import six
+
 from persistent import Persistent
-from plone.namedfile.interfaces import INamedBlobFile
-from plone.namedfile.interfaces import INamedBlobImage
-from plone.namedfile.interfaces import INamedFile
-from plone.namedfile.interfaces import INamedImage
-from plone.namedfile.interfaces import IStorage
-from plone.namedfile.utils import get_contenttype
-from plone.namedfile.utils import get_exif
-from plone.namedfile.utils import getImageInfo
-from plone.namedfile.utils import rotate_image
+
 from ZODB.blob import Blob
+
 from zope.component import getUtility
+
 from zope.interface import implementer
+
 from zope.schema.fieldproperty import FieldProperty
 
 import piexif
+
 import transaction
 
+from plone.namedfile.interfaces import IStorage
+from plone.namedfile.interfaces import INamedFile
+from plone.namedfile.interfaces import INamedImage
+from plone.namedfile.interfaces import INamedBlobFile
+from plone.namedfile.interfaces import INamedBlobImage
 
-log = getLogger(__name__)
-
+from plone.namedfile.utils import get_exif
+from plone.namedfile.utils import getImageInfo
+from plone.namedfile.utils import rotate_image
+from plone.namedfile.utils import get_contenttype
 
 MAXCHUNKSIZE = 1 << 16
+
 IMAGE_INFO_BYTES = 1024
+
 MAX_INFO_BYTES = 1 << 16
+
+logger = __import__('logging').getLogger(__name__)
 
 
 class FileChunk(Persistent):
-    """Wrapper for possibly large data"""
+    """
+    Wrapper for possibly large data
+    """
 
     next = None
 
     def __init__(self, data):
         self._data = data
 
-    def __getslice__(self, i, j):
-        return self._data[i:j]
+    def __getitem__(self, i):
+        return self._data[i]
 
     def __len__(self):
-        data = str(self)
+        data = bytes(self)
         return len(data)
 
-    def __str__(self):
+    def __bytes__(self):
         next = self.next
         if next is None:
             return self._data
@@ -56,20 +72,28 @@ class FileChunk(Persistent):
             result.append(self._data)
             next = self.next
 
-        return ''.join(result)
+        return b''.join(result)
+
+    if str is bytes:
+        __str__ = __bytes__
+    else:
+        def __str__(self):
+            return self.__bytes__().decode("iso-8859-1", errors='ignore')
 
 
 FILECHUNK_CLASSES = [FileChunk]
 try:
-    from zope.app.file.file import FileChunk as zafFileChunk
-    FILECHUNK_CLASSES.append(zafFileChunk)
+    from zope.app.file.file import FileChunk as Zope_FileChunk
+    FILECHUNK_CLASSES.append(Zope_FileChunk)
 except ImportError:
     pass
+FILECHUNK_CLASSES = tuple(FILECHUNK_CLASSES)
 
 
 @implementer(INamedFile)
 class NamedFile(Persistent):
-    """A non-BLOB file that stores a filename
+    """
+    A non-BLOB file that stores a filename
 
     Let's test the constructor:
 
@@ -138,8 +162,8 @@ class NamedFile(Persistent):
 
     Insert data from file object:
 
-    >>> import cStringIO
-    >>> sio = cStringIO.StringIO()
+    >>> import StringIO
+    >>> sio = StringIO.StringIO()
     >>> sio.write('Foobar'*100000)
     >>> sio.seek(0)
     >>> file.data = sio
@@ -160,29 +184,27 @@ class NamedFile(Persistent):
 
     filename = FieldProperty(INamedFile['filename'])
 
-    def __init__(self, data='', contentType='', filename=None):
-        if (
-            filename is not None and
-            contentType in ('', 'application/octet-stream')
-        ):
+    def __init__(self, data=b'', contentType='', filename=None):
+        if      filename is not None  \
+            and contentType in ('', 'application/octet-stream'):
             contentType = get_contenttype(filename=filename)
         self.data = data
-        self.contentType = contentType
         self.filename = filename
+        self.contentType = contentType
 
     def _getData(self):
-        if isinstance(self._data, tuple(FILECHUNK_CLASSES)):
-            return str(self._data)
+        if isinstance(self._data, FILECHUNK_CLASSES):
+            return six.binary_type(self._data)
         else:
             return self._data
 
     def _setData(self, data):
 
         # Handle case when data is a string
-        if isinstance(data, unicode):
-            data = data.encode('UTF-8')
+        if isinstance(data, six.text_type):
+            data = data.encode('utf-8')
 
-        if isinstance(data, str):
+        if isinstance(data, six.binary_type):
             self._data, self._size = FileChunk(data), len(data)
             return
 
@@ -191,7 +213,7 @@ class NamedFile(Persistent):
             raise TypeError('Cannot set None data on a file.')
 
         # Handle case when data is already a FileChunk
-        if isinstance(data, tuple(FILECHUNK_CLASSES)):
+        if isinstance(data, FILECHUNK_CLASSES):
             size = len(data)
             self._data, self._size = data, size
             return
@@ -258,7 +280,9 @@ class NamedFile(Persistent):
         return
 
     def getSize(self):
-        '''See `IFile`'''
+        '''
+        See `IFile`
+        '''
         return self._size
 
     # See IFile.
@@ -267,7 +291,8 @@ class NamedFile(Persistent):
 
 @implementer(INamedImage)
 class NamedImage(NamedFile):
-    """An non-BLOB image with a filename
+    """
+    An non-BLOB image with a filename
     """
     filename = FieldProperty(INamedFile['filename'])
 
@@ -287,19 +312,20 @@ class NamedImage(NamedFile):
                       'Exif Data: %s', exif_data)
             orientation = exif_data['0th'].get(piexif.ImageIFD.Orientation, 1)
             if 1 < orientation <= 8:
-                self.data, self._width, self._height, self.exif = rotate_image(
-                    self.data)
+                values = rotate_image(self.data)
+                self.data, self._width, self._height, self.exif = values
             self.exif_data = exif_data
 
     def _setData(self, data):
         super(NamedImage, self)._setData(data)
-
         contentType, self._width, self._height = getImageInfo(self._data)
         if contentType:
             self.contentType = contentType
 
     def getImageSize(self):
-        '''See interface `IImage`'''
+        '''
+        See interface `IImage`
+        '''
         return (self._width, self._height)
 
     data = property(NamedFile._getData, _setData)
@@ -307,15 +333,15 @@ class NamedImage(NamedFile):
 
 @implementer(INamedBlobFile)
 class NamedBlobFile(Persistent):
-    """A file stored in a ZODB BLOB, with a filename"""
+    """
+    A file stored in a ZODB BLOB, with a filename
+    """
 
     filename = FieldProperty(INamedFile['filename'])
 
     def __init__(self, data='', contentType='', filename=None):
-        if (
-            filename is not None and
-            contentType in ('', 'application/octet-stream')
-        ):
+        if      filename is not None \
+            and contentType in ('', 'application/octet-stream'):
             contentType = get_contenttype(filename=filename)
         self.contentType = contentType
         self._blob = Blob()
@@ -369,17 +395,16 @@ class NamedBlobFile(Persistent):
 
 @implementer(INamedBlobImage)
 class NamedBlobImage(NamedBlobFile):
-    """An image stored in a ZODB BLOB with a filename
+    """
+    An image stored in a ZODB BLOB with a filename
     """
 
     def __init__(self, data='', contentType='', filename=None):
-        super(NamedBlobImage, self).__init__(data,
-                                             contentType=contentType,
-                                             filename=filename)
-
+        super(NamedBlobImage, self).__init__(data, contentType, filename)
         # Allow override of the image sniffer
         if contentType:
             self.contentType = contentType
+
         exif_data = get_exif(self.data)
         if exif_data is not None:
             log.debug('Image contains Exif Informations. '
@@ -387,8 +412,8 @@ class NamedBlobImage(NamedBlobFile):
                       'Exif Data: %s', exif_data)
             orientation = exif_data['0th'].get(piexif.ImageIFD.Orientation, 1)
             if 1 < orientation <= 8:
-                self.data, self._width, self._height, self.exif = rotate_image(
-                    self.data)
+                values = rotate_image(self.data)
+                self.data, self._width, self._height, self.exif = values
             else:
                 self.exif = exif_data
 
@@ -409,7 +434,8 @@ class NamedBlobImage(NamedBlobFile):
     data = property(NamedBlobFile._getData, _setData)
 
     def getFirstBytes(self, start=0, length=IMAGE_INFO_BYTES):
-        """Returns the first bytes of the file.
+        """
+        Returns the first bytes of the file.
 
         Returns an amount which is sufficient to determine the image type.
         """
@@ -420,9 +446,10 @@ class NamedBlobImage(NamedBlobFile):
         return firstbytes
 
     def getImageSize(self):
-        """See interface `IImage`"""
+        """
+        See interface `IImage`
+        """
         if (self._width, self._height) != (-1, -1):
             return (self._width, self._height)
-
         contentType, self._width, self._height = getImageInfo(self.data)
         return (self._width, self._height)
