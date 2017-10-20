@@ -3,6 +3,7 @@
 """
 Externalization Interfaces
 
+.. $Id$
 """
 
 from __future__ import division
@@ -19,18 +20,18 @@ from zope.schema.interfaces import IObject
 HAVE_BLOBS = True
 
 
-class ITextType(Interface):
+class ITextType(interface.Interface):
     """
     Marker interface for text type.
     """
-classImplements(six.text_type, ITextType)
+interface.classImplements(six.text_type, ITextType)
 
 
-class IBinaryType(Interface):
+class IBinaryType(interface.Interface):
     """
     Marker interface for binary types.
     """
-classImplements(six.binary_type, IBinary)
+interface.classImplements(six.binary_type, IBinaryType)
 
 
 class IFile(interface.Interface):
