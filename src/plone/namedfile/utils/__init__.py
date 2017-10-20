@@ -49,9 +49,21 @@ def get_contenttype(source=None,
         return file_type
     filename = getattr(source, 'filename', filename)
     if filename:
-        extension = os.path.splitext(filename)[1].lower()
-        return mimetypes.guess_type(extension, strict=True)[0] or 'application/octet-stream'
+        return mimetypes.guess_type(filename, strict=True)[0] or 'application/octet-stream'
     return default
+
+
+def bytes_(s, encoding='utf-8', errors='strict'):
+    """
+    If ``s`` is an instance of ``text_type``, return
+    ``s.encode(encoding, errors)``, otherwise return ``s``
+    """
+    if not isinstance(s, bytes):
+        if hasattr(s, 'encode'):
+            s = s.encode(encoding, errors)
+        elif hasattr(s, '__bytes__'):
+            s = s.__bytes__()
+    return s
 
 
 def _ensure_data(image):
@@ -61,7 +73,7 @@ def _ensure_data(image):
         image.seek(0)
     else:
         data = image
-    return six.binary_type(data)
+    return bytes_(data)
 
 
 def getImageInfo(data):
