@@ -65,13 +65,11 @@ class FileChunk(Persistent):
         next = self.next
         if next is None:
             return self._data
-
         result = [self._data]
         while next is not None:
             self = next
             result.append(self._data)
             next = self.next
-
         return b''.join(result)
 
     if str is bytes:
@@ -296,7 +294,7 @@ class NamedImage(NamedFile):
     """
     filename = FieldProperty(INamedFile['filename'])
 
-    def __init__(self, data='', contentType='', filename=None):
+    def __init__(self, data=b'', contentType=b'', filename=None):
         self.contentType, self._width, self._height = getImageInfo(data)
         self.filename = filename
         self._setData(data)
@@ -307,9 +305,9 @@ class NamedImage(NamedFile):
 
         exif_data = get_exif(data)
         if exif_data is not None:
-            log.debug('Image contains Exif Informations. '
-                      'Test for Image Orientation and Rotate if necessary.'
-                      'Exif Data: %s', exif_data)
+            logger.debug('Image contains Exif Informations. '
+                         'Test for Image Orientation and Rotate if necessary.'
+                         'Exif Data: %s', exif_data)
             orientation = exif_data['0th'].get(piexif.ImageIFD.Orientation, 1)
             if 1 < orientation <= 8:
                 values = rotate_image(self.data)
@@ -339,14 +337,14 @@ class NamedBlobFile(Persistent):
 
     filename = FieldProperty(INamedFile['filename'])
 
-    def __init__(self, data='', contentType='', filename=None):
+    def __init__(self, data=b'', contentType=b'', filename=None):
         if      filename is not None \
             and contentType in ('', 'application/octet-stream'):
             contentType = get_contenttype(filename=filename)
         self.contentType = contentType
         self._blob = Blob()
         f = self._blob.open('w')
-        f.write('')
+        f.write(b'')
         f.close()
         self._setData(data)
         self.filename = filename
@@ -365,7 +363,7 @@ class NamedBlobFile(Persistent):
         # Search for a storable that is able to store the data
         dottedName = '.'.join((data.__class__.__module__,
                                data.__class__.__name__))
-        log.debug('Storage selected for data: %s', dottedName)
+        logger.debug('Storage selected for data: %s', dottedName)
         storable = getUtility(IStorage, name=dottedName)
         storable.store(data, self._blob)
 
@@ -399,7 +397,7 @@ class NamedBlobImage(NamedBlobFile):
     An image stored in a ZODB BLOB with a filename
     """
 
-    def __init__(self, data='', contentType='', filename=None):
+    def __init__(self, data=b'', contentType=b'', filename=None):
         super(NamedBlobImage, self).__init__(data, contentType, filename)
         # Allow override of the image sniffer
         if contentType:
@@ -407,9 +405,9 @@ class NamedBlobImage(NamedBlobFile):
 
         exif_data = get_exif(self.data)
         if exif_data is not None:
-            log.debug('Image contains Exif Informations. '
-                      'Test for Image Orientation and Rotate if necessary.'
-                      'Exif Data: %s', exif_data)
+            logger.debug('Image contains Exif Informations. '
+                         'Test for Image Orientation and Rotate if necessary.'
+                         'Exif Data: %s', exif_data)
             orientation = exif_data['0th'].get(piexif.ImageIFD.Orientation, 1)
             if 1 < orientation <= 8:
                 values = rotate_image(self.data)
