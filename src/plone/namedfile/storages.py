@@ -58,7 +58,7 @@ class FileChunkStorable(object):
         with blob.open('w') as fp:
             chunk = data
             while chunk:
-                fp.write(chunk, '_data')
+                fp.write(chunk._data)
                 chunk = chunk.next
 
 
