@@ -46,4 +46,5 @@ def getFile(filename):
     Return contents of the file with the given name
     """
     filename = os.path.join(os.path.dirname(__file__), filename)
-    return open(filename, 'rb')
+    with open(filename, 'rb') as fp:
+        return fp.read()
