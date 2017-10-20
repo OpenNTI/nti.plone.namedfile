@@ -1,45 +1,50 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+.. $Id$
+"""
 
-from logging import getLogger
-from StringIO import StringIO
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import struct
+from io import BytesIO
 
-
-log = getLogger(__name__)
+logger = __import__('logging').getLogger(__name__)
 
 
 def process_jpeg(data):
-    content_type = None
-    w = -1
-    h = -1
     size = len(data)
-
-    if (size >= 2) and data.startswith('\377\330'):  # handle JPEGs
+    content_type, width, height = None, -1, -1
+    # handle JPEGs
+    if size >= 2 and data.startswith(b'\377\330'):
         content_type = 'image/jpeg'
-        jpeg = StringIO(data)
+        jpeg = BytesIO(data)
         jpeg.read(2)
         b = jpeg.read(1)
         try:
-            while (b and ord(b) != 0xDA):
-                while (ord(b) != 0xFF):
+            width = -1
+            width = -1
+            while b and ord(b) != 0xDA:
+                while ord(b) != 0xFF:
                     b = jpeg.read(1)
-                while (ord(b) == 0xFF):
+                while ord(b) == 0xFF:
                     b = jpeg.read(1)
-                if (ord(b) >= 0xC0 and ord(b) <= 0xC3):
+                if ord(b) >= 0xC0 and ord(b) <= 0xC3:
                     jpeg.read(3)
-                    h, w = struct.unpack('>HH', jpeg.read(4))
+                    height, width = struct.unpack(b'>HH', jpeg.read(4))
                     break
                 else:
-                    jpeg.read(int(struct.unpack('>H', jpeg.read(2))[0]) - 2)
+                    jpeg.read(int(struct.unpack(b'>H', jpeg.read(2))[0]) - 2)
                 b = jpeg.read(1)
+            width = int(width)
+            height = int(height)
         except struct.error:
             pass
         except ValueError:
             pass
         except TypeError:
             pass
-
-    width = int(w)
-    height = int(h)
+    # return
     return content_type, width, height

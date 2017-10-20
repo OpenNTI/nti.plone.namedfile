@@ -1,98 +1,79 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+.. $Id$
+"""
 
-from logging import getLogger
-from StringIO import StringIO
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 
 import struct
+from io import BytesIO
 
-
-log = getLogger(__name__)
+logger = __import__('logging').getLogger(__name__)
 
 
 def process_tiff(data):
-    """handle Tiff Images
-    --> Doc http://partners.adobe.com/public/developer/en/tiff/TIFF6.pdf
-
-    """
     content_type = None
-    w = -1
-    h = -1
-    # check for '42' as flag for tiff:
-    # TODO: implement correct Image Length and Image Width lookup --> Page 14ff
-    # Page 18: Tags:
-    # ImageLength: Tag: 257 (101.H) Short or Long
-    # ImageWidth: Tag: 256 (100.H) Short or Long
-
+    width = height = -1
+    # Standard TIFF, big- or little-endian
+    # BigTIFF and other different but TIFF-like formats are not
+    # supported currently
+    byte_order = data[:2]
+    bo_char = ">" if byte_order == "MM" else "<"
+    # maps TIFF type id to size (in bytes)
+    # and python format char for struct
+    tiff_types = {
+        1: (1, bo_char + "B"),  # BYTE
+        2: (1, bo_char + "c"),  # ASCII
+        3: (2, bo_char + "H"),  # SHORT
+        4: (4, bo_char + "L"),  # LONG
+        5: (8, bo_char + "LL"),  # RATIONAL
+        6: (1, bo_char + "b"),  # SBYTE
+        7: (1, bo_char + "c"),  # UNDEFINED
+        8: (2, bo_char + "h"),  # SSHORT
+        9: (4, bo_char + "l"),  # SLONG
+        10: (8, bo_char + "ll"),  # SRATIONAL
+        11: (4, bo_char + "f"),  # FLOAT
+        12: (8, bo_char + "d")   # DOUBLE
+    }
+    tiff = BytesIO(data)
+    ifd_offset = struct.unpack(bo_char + "L", data[4:8])[0]
     try:
-        # Image File Header (Page 13-14):
-        # First 2 Bytes: Determ Byte Order
-        # --> II (4949.H) --> little-endian
-        # --> MM (4D4D.H) --> big-endian
-        # next 2 Bytes always Number: 42
-        endian = None
-        if data[:2] == 'MM' and struct.unpack('>I', data[2:4])[0] == 42:
-            content_type = 'image/tiff'
-            endian = '>'  # big-endian encoding for the whole data stream
-            log.info('Tiff Image in big-endian encoding')
-        elif data[:2] == 'II' and struct.unpack('<I', data[2:4])[0] == 42:
-            content_type = 'image/tiff'
-            endian = '<'  # little-endian encoding for the whole data stream
-            log.info('Tiff Image in little-endian encoding')
-        else:
-            # not a tiff image
-            log.info('Endian or 42 Check failed')
-
-        if endian:
-            tiff = StringIO(data)
-            tiff.read(4)  # Magic Header, could be skipped, already processed
-            offset = struct.unpack_from(endian + 'I', tiff)  # first IFD offset
-            b = tiff.read(offset)
-            # Process Image File Directory
-            while (b and ord(b) != 0xDA):
-                field_tag = struct.unpack_from(endian + 'I', tiff)
-                field_type = struct.unpack_from(endian + 'I', tiff)
-                field_type = translate_field_type.get(field_type, field_type)
-                field_value = struct.unpack_from(endian + field_type, tiff)
-                if field_tag == '256':  # ImageWidth
-                    w = field_value
-                elif field_tag == '257':  # ImageLength
-                    h = field_value
-                    # as fields has to appear in ascending order
-                    # we could skip all other fields
-                    break
-                next_offset = struct.unpack_from(endian + 'I', tiff)
-                b.read(next_offset)
-    except struct.error:
-        pass
-    except ValueError:
-        pass
-    except TypeError:
-        pass
-
-    width = int(w)
-    height = int(h)
+        count_size = 2
+        tiff.seek(ifd_offset)
+        ec = tiff.read(count_size)
+        ifd_entry_count = struct.unpack(bo_char + "H", ec)[0]
+        # 2 bytes: TagId + 2 bytes: type + 4 bytes: count of values + 4
+        # bytes: value offset
+        ifd_entry_size = 12
+        for i in range(ifd_entry_count):
+            entry_offset = ifd_offset + count_size + i * ifd_entry_size
+            tiff.seek(entry_offset)
+            tag = tiff.read(2)
+            tag = struct.unpack(bo_char + "H", tag)[0]
+            if tag in (256, 257):
+                # if type indicates that value fits into 4 bytes, value
+                # offset is not an offset but value itself
+                type_ = tiff.read(2)
+                type_ = struct.unpack(bo_char + "H", type_)[0]
+                if type_ not in tiff_types:
+                    raise Exception("Unkown TIFF field type:" +
+                                    str(type_))
+                type_size = tiff_types[type_][0]
+                type_char = tiff_types[type_][1]
+                tiff.seek(entry_offset + 8)
+                value = tiff.read(type_size)
+                value = int(struct.unpack(type_char, value)[0])
+                if tag == 256:
+                    width = value
+                else:
+                    height = value
+            if width > -1 and height > -1:
+                content_type = 'image/tiff'
+                break
+    except Exception as e:
+        logger.error("Unknown image format. %s", e)
+    # return
     return content_type, width, height
-
-
-translate_field_type = {
-    """handle Tiff Image File Directory Types
-    --> Doc http://partners.adobe.com/public/developer/en/tiff/TIFF6.pdf
-    page 14-16
-    """
-    # TODO: translate to correct python struct mapping
-    # TODO: check mappings
-    '1': 'I',  # BYTE: 8-bit unsigned Integer
-    '2': 'c',  # 'b' 'B'
-               # ASCII: 8-bit byte that contains a 7-bit ASCII code
-    '3': 'H',  # SHORT: 16-bit (2-byte) unsigned integer
-    '4': 'L',  # LONG: 32-bit (4-byte) unsigned integer
-    '5': '',  # RATIONAL, two LONGs: the first represents the numerator
-              # of a fraction; the second, the donominator
-    '6': '',  # SBYTE: An 8-bit signed (twos-complement) integer
-    '7': '',  # UNDEFINED
-    '8': '',  # SSHORT: A 16-bit (2-byte) signed (twos-complement) integer
-    '9': '',   # SLONG: A 32-bit (4-byte) signed (twos-complement) integer
-    '10': '',  # SRATIONAL: Two SLONG's (mutator, denominator)
-    '11': '',  # FLOAT: Single precision (4-byte) IEEE format.
-    '12': '',  # DOUBLE: Double precision (8-byte) IEEE format.
-}
