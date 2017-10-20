@@ -1,26 +1,8 @@
-<configure
-    xmlns="http://namespaces.zope.org/zope"
-    xmlns:zcml="http://namespaces.zope.org/zcml"
-    xmlns:browser="http://namespaces.zope.org/browser">
+<!-- -*- mode: nxml -*- -->
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml">
 
-  <browser:page
-      name="download"
-      for="*"
-      class=".browser.Download"
-      permission="zope2.View"
-      />
-
-  <browser:page
-      name="display-file"
-      for="*"
-      class=".browser.DisplayFile"
-      permission="zope2.View"
-      />
-
-  <include file="z3c-blobfile.zcml" />
-  <include file="handler.zcml" />
-  <include file="marshaler.zcml" />
-  <include file="scaling.zcml" />
-  <include file="editor.zcml" />
+	<include file="z3c-blobfile.zcml" />
 
 </configure>
