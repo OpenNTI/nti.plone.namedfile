@@ -22,8 +22,6 @@ from plone.namedfile.file import NamedBlobImage
 from plone.namedfile.interfaces import INamedBlobFile
 from plone.namedfile.interfaces import INamedBlobImage
 from plone.namedfile.interfaces import IStorage
-from plone.namedfile.testing import PLONE_NAMEDFILE_FUNCTIONAL_TESTING
-from plone.namedfile.testing import PLONE_NAMEDFILE_INTEGRATION_TESTING
 from plone.namedfile.tests.test_image import zptlogo
 from zope.component import provideUtility
 from zope.interface.verify import verifyClass
@@ -56,9 +54,10 @@ def registerUtilities():
     )
 
 
+@unittest.SkipTest
 class TestImage(unittest.TestCase):
 
-    layer = PLONE_NAMEDFILE_INTEGRATION_TESTING
+    #layer = PLONE_NAMEDFILE_INTEGRATION_TESTING
 
     def setUp(self):
         registerUtilities()
@@ -105,9 +104,10 @@ class TestImage(unittest.TestCase):
         self.assertEqual(image.getImageSize(), (1024, 680))
 
 
+@unittest.SkipTest
 class TestImageFunctional(unittest.TestCase):
 
-    layer = PLONE_NAMEDFILE_FUNCTIONAL_TESTING
+    #layer = PLONE_NAMEDFILE_FUNCTIONAL_TESTING
 
     def setUp(self):
         registerUtilities()
