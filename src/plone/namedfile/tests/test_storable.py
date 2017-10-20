@@ -8,6 +8,9 @@ from __future__ import absolute_import
 # disable: accessing protected members, too many methods
 # pylint: disable=W0212,R0904
 
+from hamcrest import is_
+from hamcrest import assert_that
+
 import unittest
 
 from plone.namedfile.file import FileChunk
@@ -22,10 +25,10 @@ class TestStorable(unittest.TestCase):
     layer = SharedConfiguringTestLayer
 
     def test_binary_storable(self):
-        fi = NamedBlobImage(getFile('image.gif').read(), filename=u'image.gif')
-        self.assertEqual(303, fi.getSize())
+        fi = NamedBlobImage(getFile('image.gif'), filename=u'image.gif')
+        assert_that(fi.getSize(), is_(303))
 
     def test_filechunk_storable(self):
-        fi = NamedBlobImage(FileChunk(getFile('image.gif').read()),
+        fi = NamedBlobImage(FileChunk(getFile('image.gif')),
                             filename=u'image.gif')
-        self.assertEqual(303, fi.getSize())
+        assert_that(fi.getSize(), is_(303))
