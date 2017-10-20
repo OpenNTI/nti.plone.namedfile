@@ -47,6 +47,9 @@ setup(
     include_package_data=True,
     install_requires=[
         'setuptools',
+        'piexif',
+        'Pillow',
+        'persistent',
         'six',
         'ZODB',
         'zope.component',
@@ -55,7 +58,6 @@ setup(
         'zope.schema',
         'zope.security',
         'zope.traversing',
-        'piexif',
     ],
     test_suite="plone.namedfile.tests",
     extras_require={
