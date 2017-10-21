@@ -27,8 +27,6 @@ from plone.namedfile.tests import SharedConfiguringTestLayer
 
 from plone.namedfile.utils import get_contenttype
 
-zptlogo = getFile('zptlogo.gif')
-
 
 class TestImage(unittest.TestCase):
 
@@ -54,7 +52,8 @@ class TestImage(unittest.TestCase):
         image.contentType = 'image/jpeg'
         assert_that(image, 
                     has_property('contentType', 'image/jpeg'))
-
+        
+        zptlogo = getFile('zptlogo.gif')
         image._setData(zptlogo)
         assert_that(image,
                     has_properties('data', equal_to(zptlogo),
@@ -78,3 +77,33 @@ class TestImage(unittest.TestCase):
         assert_that(get_contenttype(NamedImage(getFile('notimage.doc'),
                                                filename=u'notimage.doc')),
                     is_('application/msword'))
+
+    def test_gif(self):
+        image = self._makeImage()
+        image._setData(getFile("sample.gif"))
+        assert_that(image.contentType, is_('image/gif'))
+        assert_that(image.getImageSize(), is_((200, 200)))
+
+    def test_png(self):
+        image = self._makeImage()
+        image._setData(getFile("sample.png"))
+        assert_that(image.contentType, is_('image/png'))
+        assert_that(image.getImageSize(), is_((200, 200)))
+
+    def test_jpeg(self):
+        image = self._makeImage()
+        image._setData(getFile("sample.jpg"))
+        assert_that(image.contentType, is_('image/jpeg'))
+        assert_that(image.getImageSize(), is_((500, 200)))
+        
+    def test_tiff(self):
+        image = self._makeImage()
+        image._setData(getFile("sample.tiff"))
+        assert_that(image.contentType, is_('image/tiff'))
+        assert_that(image.getImageSize(), is_((1728, 2376)))
+    
+    def test_bmp(self):
+        image = self._makeImage()
+        image._setData(getFile("sample.bmp"))
+        assert_that(image.contentType, is_('image/x-ms-bmp'))
+        assert_that(image.getImageSize(), is_((256, 256)))
