@@ -40,11 +40,7 @@ def process_jpeg(data):
                 b = jpeg.read(1)
             width = int(width)
             height = int(height)
-        except struct.error:
-            pass
-        except ValueError:
-            pass
-        except TypeError:
+        except (struct.error, ValueError, TypeError):
             pass
     # return
     return content_type, width, height

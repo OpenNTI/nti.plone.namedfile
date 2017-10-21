@@ -15,8 +15,9 @@ import unittest
 
 from plone.namedfile.tests import SharedConfiguringTestLayer
 
-from plone.namedfile.utils.png_utils import process_png
+from plone.namedfile.utils.jpeg_utils import process_jpeg
 
+from plone.namedfile.utils.png_utils import process_png
 
 class TestUtils(unittest.TestCase):
 
@@ -26,3 +27,8 @@ class TestUtils(unittest.TestCase):
         data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\x10\x00\x00\x00\x0f'
         assert_that(process_png(data),
                     is_(('image/png', 16, 15)))
+        
+    def test_invalid_jpeg(self):
+        data = b'\377\330\r\n\x1a\n\x00\x0f'
+        assert_that(process_jpeg(data),
+                    is_(('image/jpeg', -1, -1)))
