@@ -17,6 +17,7 @@ from zope.interface import implementer
 
 from plone.namedfile.file import FileChunk
 
+from plone.namedfile.interfaces import IFileIO
 from plone.namedfile.interfaces import IStorage
 from plone.namedfile.interfaces import NotStorable
 
@@ -66,10 +67,9 @@ class FileChunkStorable(object):
 class FileDescriptorStorable(object):
 
     def store(self, data, blob):
-        if not isinstance(data, file):
+        if not IFileIO.providedBy(data):
             raise NotStorable('Could not store data (not of "file").')
 
         filename = getattr(data, 'name', None)
         if filename is not None:
             blob.consumeFile(filename)
-            return
