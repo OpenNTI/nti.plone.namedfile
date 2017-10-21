@@ -10,28 +10,10 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-import six
-
 from zope import schema
 from zope import interface
 
-from zope.schema.interfaces import IObject
-
 HAVE_BLOBS = True
-
-
-class ITextType(interface.Interface):
-    """
-    Marker interface for text type.
-    """
-interface.classImplements(six.text_type, ITextType)
-
-
-class IBinaryType(interface.Interface):
-    """
-    Marker interface for binary types.
-    """
-interface.classImplements(six.binary_type, IBinaryType)
 
 
 class IFile(interface.Interface):
