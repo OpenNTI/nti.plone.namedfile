@@ -62,14 +62,14 @@ class FileChunk(Persistent):
         return len(data)
 
     def __bytes__(self):
-        next = self.next
-        if next is None:
+        next_ = self.next
+        if next_ is None:
             return self._data
         result = [self._data]
-        while next is not None:
-            self = next
+        while next_ is not None:
+            self = next_
             result.append(self._data)
-            next = self.next
+            next_ = self.next
         return b''.join(result)
 
     if str is bytes:
@@ -247,7 +247,7 @@ class NamedFile(Persistent):
         # to front to minimize the number of database updates
         # and to allow us to get things out of memory as soon as
         # possible.
-        next = None
+        next_ = None
         while end > 0:
             pos = end - MAXCHUNKSIZE
             if pos < MAXCHUNKSIZE:
@@ -262,7 +262,7 @@ class NamedFile(Persistent):
 
             # This is needed and has side benefit of getting
             # the thing registered:
-            data.next = next
+            data.next = next_
 
             # Now make it get saved in a sub-transaction!
             transaction.savepoint(optimistic=True)
@@ -271,10 +271,10 @@ class NamedFile(Persistent):
             # don't need it anymore!
             data._p_changed = None
 
-            next = data
+            next_ = data
             end = pos
 
-        self._data, self._size = next, size
+        self._data, self._size = next_, size
         return
 
     def getSize(self):
@@ -449,5 +449,5 @@ class NamedBlobImage(NamedBlobFile):
         """
         if (self._width, self._height) != (-1, -1):
             return (self._width, self._height)
-        contentType, self._width, self._height = getImageInfo(self.data)
+        _, self._width, self._height = getImageInfo(self.data)
         return (self._width, self._height)
