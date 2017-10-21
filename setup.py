@@ -1,65 +1,71 @@
-# -*- coding: utf-8 -*-
-from setuptools import find_packages
-from setuptools import setup
-import os
+import codecs
+from setuptools import setup, find_packages
+
+entry_points = {
+    'console_scripts': [
+    ],
+}
+
+TESTS_REQUIRE = [
+    'nti.testing',
+    'zope.dottedname',
+    'zope.testrunner',
+]
 
 
-version = '4.2.4.dev0'
-description = 'File types and fields for images, files and blob files with ' \
-              'filenames'
-long_description = ('\n\n'.join([
-    open('README.rst').read(),
-    open('CHANGES.rst').read(),
-    open(os.path.join("plone", "namedfile", "usage.rst")).read(),
-]))
+def _read(fname):
+    with codecs.open(fname, encoding='utf-8') as f:
+        return f.read()
 
 
 setup(
     name='plone.namedfile',
-    version=version,
-    description=description,
-    long_description=long_description,
-    classifiers=[
-        "Framework :: Plone",
-        "Framework :: Plone :: 5.1",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2.7",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "License :: OSI Approved :: BSD License",
-    ],
-    keywords='plone named file image blob',
+    version=_read('version.txt').strip(),
     author='Laurence Rowe, Martin Aspeli',
     author_email='plone-developers@lists.sourceforge.net',
-    url='https://pypi.python.org/pypi/plone.namedfile',
-    license='BSD',
-    packages=find_packages(exclude=['ez_setup']),
-    namespace_packages=['plone'],
+    description="File types and fields for images, files and blob files with filenames",
+    long_description=(_read('README.rst') + '\n\n' + _read('CHANGES.rst')),
+    license="BSD",
+    keywords='plone named file image blob',
+    classifiers=[
+        'Intended Audience :: Developers',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        "License :: OSI Approved :: BSD License",
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
+    ],
+    url="https://github.com/NextThought/nti.plone.namedfile",
+    zip_safe=True,
+    packages=find_packages("src"),
+    package_dir={'': 'src'},
     include_package_data=True,
-    zip_safe=False,
     install_requires=[
-        'plone.rfc822>=1.0b2',
-        'plone.scale[storage] >=1.4.999',
-        'plone.schemaeditor',
-        'plone.supermodel',
         'setuptools',
-        'zope.browserpage',
+        'piexif',
+        'Pillow',
+        'persistent',
+        'six',
+        'transaction',
+        'ZODB',
         'zope.component',
         'zope.copy',
+        'zope.interface',
+        'zope.schema',
         'zope.security',
-        'zope.traversing',
-        'piexif',
     ],
+    test_suite="plone.namedfile.tests",
     extras_require={
-        'test': [
-            'lxml',
-            'Pillow',
-            'plone.testing[z2]',
+        'test': TESTS_REQUIRE,
+        'docs': [
+            'Sphinx',
+            'repoze.sphinx.autointerface',
+            'sphinx_rtd_theme',
         ],
-        # BBB - remove in version 5
-        'blobs': [],
-        'editor': [],
-        'marshaler': [],
-        'scales': [],
-        'supermodel': [],
     },
 )

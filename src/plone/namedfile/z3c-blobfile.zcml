@@ -1,0 +1,32 @@
+<!-- -*- mode: nxml -*- -->
+<configure  xmlns="http://namespaces.zope.org/zope"
+            xmlns:i18n="http://namespaces.zope.org/i18n"
+            xmlns:zcml="http://namespaces.zope.org/zcml">
+
+	<utility name="__builtin__.str"
+			 provides=".interfaces.IStorage"
+			 factory=".storages.BinaryStorable" />
+
+	<utility name="__builtin__.unicode"
+			 provides=".interfaces.IStorage"
+			 factory=".storages.UnicodeStorable" />
+
+	<utility name="builtins.bytes"
+			 provides=".interfaces.IStorage"
+			 factory=".storages.BinaryStorable" />
+
+	<utility name="builtins.str"
+			 provides=".interfaces.IStorage"
+			 factory=".storages.UnicodeStorable" />
+
+	<utility name="plone.namedfile.file.FileChunk"
+			 provides=".interfaces.IStorage"
+			 factory=".storages.FileChunkStorable" />
+
+	<utility name="__builtin__.file"
+			 provides=".interfaces.IStorage"
+			 factory=".storages.FileDescriptorStorable" />
+
+	<adapter factory=".copy.BlobFileCopyHook" />
+
+</configure>

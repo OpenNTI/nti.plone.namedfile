@@ -1,5 +1,23 @@
-include *
-graft docs
-graft plone
-
-global-exclude *.py[co]
+include README.rst
+include LICENSE
+include CHANGES.rst
+include .coveragerc
+include AUTHORS
+include INSTALL
+include TODO
+include babel.cfg
+include nose2.cfg
+include tox.ini
+include .travis.yml
+include *.txt
+exclude .nti_cover_package
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs Makefile
+recursive-include src *.zcml
+recursive-include src *.bmp
+recursive-include src *.gif
+recursive-include src *.jpg
+recursive-include src *.png
+recursive-include src *.doc
+recursive-include src *.tiff
