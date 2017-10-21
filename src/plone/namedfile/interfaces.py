@@ -10,8 +10,16 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
+import six
+from io import FileIO
+from io import BytesIO
+from io import StringIO
+from io import TextIOWrapper
+
 from zope import schema
 from zope import interface
+
+from zope.interface import classImplements
 
 HAVE_BLOBS = True
 
@@ -113,3 +121,17 @@ class INamedBlobImage(INamedImage, IBlobby):
     """
     A BLOB image with a filename
     """
+
+
+class IFileIO(interface.Interface):
+    """
+    Defines an python file builtin.
+    """
+
+if six.PY2:
+    classImplements(file, IFileIO)
+
+classImplements(FileIO, IFileIO)
+classImplements(BytesIO, IFileIO)
+classImplements(StringIO, IFileIO)
+classImplements(TextIOWrapper, IFileIO)
