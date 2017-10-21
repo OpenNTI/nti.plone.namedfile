@@ -33,11 +33,12 @@ class BlobFileCopyHook(object):
     def __init__(self, context):
         self.context = context
 
-    def __call__(self, toplevel, register):
+    def __call__(self, unused_toplevel, register):
         register(self._copyBlob)
         raise ResumeCopy
 
     def _copyBlob(self, translate):
+        # pylint: disable=W0212
         target = translate(self.context)
         target._blob = Blob()
         fsrc = self.context._blob.open('r')
