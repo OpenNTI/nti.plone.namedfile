@@ -38,14 +38,14 @@ StringStorable = BinaryStorable
 
 
 @implementer(IStorage)
-class UnicodeStorable(StringStorable):
+class UnicodeStorable(BinaryStorable):
 
     def store(self, data, blob):
         if not isinstance(data, six.text_type):
             raise NotStorable('Could not store data (not of "unicode" type).')
 
         data = data.encode('utf-8')
-        StringStorable.store(self, data, blob)
+        BinaryStorable.store(self, data, blob)
 
 
 @implementer(IStorage)
