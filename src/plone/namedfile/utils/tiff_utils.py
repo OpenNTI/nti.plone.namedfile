@@ -57,7 +57,7 @@ def process_tiff(data):
                 # if type indicates that value fits into 4 bytes, value
                 # offset is not an offset but value itself
                 type_ = tiff.read(2)
-                type_ = struct.unpack(bo_char + "H", type_)[0]
+                type_ = _tiff_type(bo_char, type_)
                 if type_ not in tiff_types:
                     raise Exception("Unkown TIFF field type:" +
                                     str(type_))
@@ -77,3 +77,7 @@ def process_tiff(data):
         logger.error("Unknown image format. %s", e)
     # return
     return content_type, width, height
+
+
+def _tiff_type(bo_char, type_):
+    return struct.unpack(bo_char + "H", type_)[0]
