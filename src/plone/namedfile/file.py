@@ -74,7 +74,7 @@ class FileChunk(Persistent):
 
     if str is bytes:
         __str__ = __bytes__
-    else:
+    else:  # pragma: no cover
         def __str__(self):
             return self.__bytes__().decode("iso-8859-1", errors='ignore')
 
@@ -182,9 +182,9 @@ class NamedFile(Persistent):
 
     filename = FieldProperty(INamedFile['filename'])
 
-    def __init__(self, data=b'', contentType='', filename=None):
+    def __init__(self, data=b'', contentType=b'', filename=None):
         if      filename is not None  \
-            and contentType in ('', 'application/octet-stream'):
+            and contentType in (b'', b'application/octet-stream'):
             contentType = get_contenttype(filename=filename)
         self.data = data
         self.filename = filename
@@ -339,7 +339,7 @@ class NamedBlobFile(Persistent):
 
     def __init__(self, data=b'', contentType=b'', filename=None):
         if      filename is not None \
-            and contentType in ('', 'application/octet-stream'):
+            and contentType in (b'', b'application/octet-stream'):
             contentType = get_contenttype(filename=filename)
         self.contentType = contentType
         self._blob = Blob()
