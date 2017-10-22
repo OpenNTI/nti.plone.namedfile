@@ -66,7 +66,7 @@ def bytes_(s, encoding='utf-8', errors='strict'):
     return s
 
 
-def _ensure_data(image):
+def ensure_data(image):
     data = None
     if getattr(image, 'read', None):
         data = image.read()
@@ -74,12 +74,13 @@ def _ensure_data(image):
     else:
         data = image
     return bytes_(data)
+_ensure_data = ensure_data
 
 
 def getImageInfo(data):
     content_type = None
     width, height = -1, -1
-    data = _ensure_data(data)
+    data = ensure_data(data)
     size = len(data)
     # handle GIFs
     if size >= 10 and data[:6] in (b'GIF87a', b'GIF89a'):
