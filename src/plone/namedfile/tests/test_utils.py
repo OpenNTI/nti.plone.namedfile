@@ -10,6 +10,7 @@ from __future__ import absolute_import
 
 from hamcrest import is_
 from hamcrest import assert_that
+from hamcrest import has_entries
 
 import unittest
 from six import StringIO
@@ -19,7 +20,10 @@ import fudge
 from plone.namedfile.tests import getFile
 from plone.namedfile.tests import SharedConfiguringTestLayer
 
+from plone.namedfile.utils import get_exif
 from plone.namedfile.utils import ensure_data
+from plone.namedfile.utils import getImageInfo
+from plone.namedfile.utils import rotate_image
 from plone.namedfile.utils import safe_basename
 from plone.namedfile.utils import get_contenttype
 
@@ -28,6 +32,7 @@ from plone.namedfile.utils.jpeg_utils import process_jpeg
 from plone.namedfile.utils.png_utils import process_png
 
 from plone.namedfile.utils.tiff_utils import process_tiff
+from hamcrest.library.object.haslength import has_length
 
 
 class TestUtils(unittest.TestCase):
@@ -68,3 +73,37 @@ class TestUtils(unittest.TestCase):
         data = getFile('sample.tiff')
         assert_that(process_tiff(data),
                     is_((None, -1, -1)))
+
+    @fudge.patch('plone.namedfile.utils.Image')
+    def test_get_image_info_invalid_image(self, mock_img):
+        mock_img.provides('open').raises(Exception)
+        assert_that(getImageInfo(b'xxxx'),
+                    is_(('', -1, -1)))
+
+    @fudge.patch('plone.namedfile.utils.Image')
+    def test_get_image_info_pil_tiff(self, mock_img):
+        info = fudge.Fake().has_attr(size=(10, 10)).has_attr(format='TIFF')
+        mock_img.provides('open').returns(info)
+        assert_that(getImageInfo(b'xxxx'),
+                    is_(('image/tiff', 10, 10)))
+
+    def test_get_exif(self):
+        assert_that(get_exif(getFile('sample.jpg')),
+                    has_entries('0th', {},
+                                '1st', {},
+                                'Exif', {},
+                                'GPS', {}))
+
+    @fudge.patch('plone.namedfile.utils.getImageInfo')
+    def test_invalid_exif(self, mock_gi):
+        mock_gi.is_callable().returns(('image/jpeg', 10, 10))
+        assert_that(get_exif(b'xxxxxx'),
+                    has_entries('0th',  {282: (10, 1), 283: (10, 1)}))
+
+    def test_rotate_image(self):
+        data, width, height, exif_data = rotate_image(getFile('exif.jpg'))
+        assert_that(width, is_(480))
+        assert_that(height, is_(360))
+        assert_that(data, has_length(32473))
+        assert_that(list(exif_data.keys()),
+                    is_(['Exif', '0th', 'Interop', '1st', 'thumbnail', 'GPS']))
