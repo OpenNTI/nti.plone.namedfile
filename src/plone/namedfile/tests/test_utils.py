@@ -111,8 +111,8 @@ class TestUtils(unittest.TestCase):
         assert_that(width, is_(480))
         assert_that(height, is_(360))
         assert_that(data, has_length(32473))
-        assert_that(list(exif_data.keys()),
-                    is_(['Exif', '0th', 'Interop', '1st', 'thumbnail', 'GPS']))
+        assert_that(sorted(exif_data.keys()),
+                    is_(['0th', '1st', 'Exif', 'GPS', 'Interop', 'thumbnail']))
 
         for method in range(1, 9):
             rotate_image(original, method)
