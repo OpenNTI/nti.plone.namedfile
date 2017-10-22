@@ -49,7 +49,7 @@ class TestFile(unittest.TestCase):
 
     def test_filechunk(self):
         fc = FileChunk(b'zope')
-        assert_that(fc[0], is_('z'))
+        assert_that(fc[0:1], is_(b'z'))
         assert_that(str(fc), is_('zope'))
 
         fc.next = FileChunk(b'catalog')
@@ -136,9 +136,9 @@ class TestFile(unittest.TestCase):
             {'0th': {piexif.ImageIFD.Orientation: 2}}
         )
         data = getFile('zptlogo.gif')
-        image = self._makeBlobImage(contentType=b'image/gif', data=data)
+        image = self._makeBlobImage(contentType='image/gif', data=data)
         assert_that(image,
-                    has_property('contentType', is_(b'image/gif')))
+                    has_property('contentType', is_('image/gif')))
         
         mock_ge.is_callable().returns(
             {'0th': {}}
