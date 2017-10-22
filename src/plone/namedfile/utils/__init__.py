@@ -142,6 +142,10 @@ def get_exif(image):
     return exif_data
 
 
+def load_exif(img):
+    return piexif.load(img.info['exif'])
+
+    
 def rotate_image(image_data, method=None):
     """
     Rotate Image if it has Exif Orientation Informations other than 1.
@@ -157,7 +161,7 @@ def rotate_image(image_data, method=None):
     exif_data = None
     if 'exif' in img.info:
         try:
-            exif_data = piexif.load(img.info['exif'])
+            exif_data = load_exif(img)
         except (ValueError):
             logger.warn('Exif information currupt')
 
