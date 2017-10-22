@@ -145,7 +145,18 @@ def get_exif(image):
 def load_exif(img):
     return piexif.load(img.info['exif'])
 
-    
+
+def img_exif_data(img):
+    width, height = img.size
+    exif_data = {
+        '0th': {
+            piexif.ImageIFD.XResolution: (width, 1),
+            piexif.ImageIFD.YResolution: (height, 1),
+        }
+    }
+    return exif_data
+
+
 def rotate_image(image_data, method=None):
     """
     Rotate Image if it has Exif Orientation Informations other than 1.
@@ -174,13 +185,7 @@ def rotate_image(image_data, method=None):
             exif_data['0th'][piexif.ImageIFD.XResolution] = (img.width, 1)
             exif_data['0th'][piexif.ImageIFD.YResolution] = (img.height, 1)
     if exif_data is None:
-        width, height = img.size
-        exif_data = {
-            '0th': {
-                piexif.ImageIFD.XResolution: (width, 1),
-                piexif.ImageIFD.YResolution: (height, 1),
-            }
-        }
+        exif_data = img_exif_data(img)
 
     if method is not None:
         orientation = method
