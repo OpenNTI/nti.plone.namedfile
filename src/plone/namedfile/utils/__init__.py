@@ -163,7 +163,8 @@ def rotate_image(image_data, method=None):
 
         if exif_data and piexif.ImageIFD.Orientation in exif_data['0th']:
             orientation = exif_data['0th'][piexif.ImageIFD.Orientation]
-        if exif_data \
+
+        if      exif_data \
             and (not exif_data['0th'].get(piexif.ImageIFD.XResolution) or
                  not exif_data['0th'].get(piexif.ImageIFD.YResolution)):
             exif_data['0th'][piexif.ImageIFD.XResolution] = (img.width, 1)
