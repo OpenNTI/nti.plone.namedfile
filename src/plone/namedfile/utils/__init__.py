@@ -121,10 +121,8 @@ def getImageInfo(data):
 
 
 def get_exif(image):
-    #
     exif_data = None
-    image_data = _ensure_data(image)
-
+    image_data = ensure_data(image)
     content_type, width, height = getImageInfo(image_data)
     if content_type in ('image/jpeg', 'image/tiff'):
         # Only this two Image Types could have Exif informations
@@ -160,7 +158,7 @@ def rotate_image(image_data, method=None):
     if 'exif' in img.info:
         try:
             exif_data = piexif.load(img.info['exif'])
-        except ValueError:
+        except (ValueError):
             logger.warn('Exif information currupt')
 
         if exif_data and piexif.ImageIFD.Orientation in exif_data['0th']:
