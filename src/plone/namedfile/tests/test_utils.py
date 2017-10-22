@@ -17,6 +17,8 @@ import unittest
 from plone.namedfile.tests import getFile
 from plone.namedfile.tests import SharedConfiguringTestLayer
 
+from plone.namedfile.utils import safe_basename
+
 from plone.namedfile.utils.jpeg_utils import process_jpeg
 
 from plone.namedfile.utils.png_utils import process_png
@@ -27,6 +29,16 @@ from plone.namedfile.utils.tiff_utils import process_tiff
 class TestUtils(unittest.TestCase):
 
     layer = SharedConfiguringTestLayer
+
+    def test_safe_basename(self):
+        assert_that(safe_basename('/farmyard/cows/daisy'),
+                    is_('daisy'))
+
+        assert_that(safe_basename('F:\FARMYARD\COWS\DAISY.TXT'),
+                    is_('DAISY.TXT'))
+        
+        assert_that(safe_basename('Macintosh Farmyard:Cows:Daisy Text File'),
+                    is_('Daisy Text File'))
 
     def test_png(self):
         data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\x10\x00\x00\x00\x0f'
