@@ -126,7 +126,7 @@ def get_exif(image):
     image_data = _ensure_data(image)
 
     content_type, width, height = getImageInfo(image_data)
-    if content_type in ['image/jpeg', 'image/tiff']:
+    if content_type in ('image/jpeg', 'image/tiff'):
         # Only this two Image Types could have Exif informations
         # see http://www.cipa.jp/std/documents/e/DC-008-2012_E.pdf
         try:
