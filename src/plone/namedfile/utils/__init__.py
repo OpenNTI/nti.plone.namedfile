@@ -16,7 +16,7 @@ from io import BytesIO
 
 import piexif
 
-import PIL
+from PIL import Image
 
 from plone.namedfile.utils.png_utils import process_png
 from plone.namedfile.utils.jpeg_utils import process_jpeg
@@ -104,7 +104,7 @@ def getImageInfo(data):
     # Use PIL / Pillow to determ Image Information
     elif data:
         try:
-            img = PIL.Image.open(BytesIO(data))
+            img = Image.open(BytesIO(data))
             width, height = img.size
             content_type = img.format or ''
             if content_type.lower() == 'tiff':
@@ -153,7 +153,7 @@ def rotate_image(image_data, method=None):
     """
     orientation = 1  # if not set assume correct orrinetation --> 1
     data = _ensure_data(image_data)
-    img = PIL.Image.open(BytesIO(data))
+    img = Image.open(BytesIO(data))
 
     exif_data = None
     if 'exif' in img.info:
@@ -188,19 +188,19 @@ def rotate_image(image_data, method=None):
         # img = img
         pass
     elif orientation == 2:
-        img = img.transpose(PIL.Image.FLIP_LEFT_RIGHT)
+        img = img.transpose(Image.FLIP_LEFT_RIGHT)
     elif orientation == 3:
-        img = img.transpose(PIL.Image.ROTATE_180)
+        img = img.transpose(Image.ROTATE_180)
     elif orientation == 4:
-        img = img.transpose(PIL.Image.ROTATE_180).transpose(PIL.Image.FLIP_LEFT_RIGHT)
+        img = img.transpose(Image.ROTATE_180).transpose(Image.FLIP_LEFT_RIGHT)
     elif orientation == 5:
-        img = img.transpose(PIL.Image.ROTATE_270).transpose(PIL.Image.FLIP_LEFT_RIGHT)
+        img = img.transpose(Image.ROTATE_270).transpose(Image.FLIP_LEFT_RIGHT)
     elif orientation == 6:
-        img = img.transpose(PIL.Image.ROTATE_270)
+        img = img.transpose(Image.ROTATE_270)
     elif orientation == 7:
-        img = img.transpose(PIL.Image.ROTATE_90).transpose(PIL.Image.FLIP_LEFT_RIGHT)
+        img = img.transpose(Image.ROTATE_90).transpose(Image.FLIP_LEFT_RIGHT)
     elif orientation == 8:
-        img = img.transpose(PIL.Image.ROTATE_90)
+        img = img.transpose(Image.ROTATE_90)
 
     if orientation in [5, 6, 7, 8]:
         if      exif_data['0th'][piexif.ImageIFD.XResolution] \
