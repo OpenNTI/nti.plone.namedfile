@@ -80,9 +80,9 @@ class FileChunk(Persistent):
 
 
 FILECHUNK_CLASSES = [FileChunk]
-try:
+try: # pragma: no cover
     from zope.app.file.file import FileChunk as Zope_FileChunk
-    FILECHUNK_CLASSES.append(Zope_FileChunk)
+    FILECHUNK_CLASSES.append(Zope_FileChunk) 
 except ImportError:  # pragma: no cover
     pass
 FILECHUNK_CLASSES = tuple(FILECHUNK_CLASSES)
