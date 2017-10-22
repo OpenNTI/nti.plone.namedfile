@@ -16,7 +16,7 @@ from io import BytesIO
 
 import piexif
 
-import PIL
+from PIL import Image
 
 from plone.namedfile.utils.png_utils import process_png
 from plone.namedfile.utils.jpeg_utils import process_jpeg
@@ -66,7 +66,7 @@ def bytes_(s, encoding='utf-8', errors='strict'):
     return s
 
 
-def _ensure_data(image):
+def ensure_data(image):
     data = None
     if getattr(image, 'read', None):
         data = image.read()
@@ -74,12 +74,13 @@ def _ensure_data(image):
     else:
         data = image
     return bytes_(data)
+_ensure_data = ensure_data
 
 
 def getImageInfo(data):
     content_type = None
     width, height = -1, -1
-    data = _ensure_data(data)
+    data = ensure_data(data)
     size = len(data)
     # handle GIFs
     if size >= 10 and data[:6] in (b'GIF87a', b'GIF89a'):
@@ -104,7 +105,7 @@ def getImageInfo(data):
     # Use PIL / Pillow to determ Image Information
     elif data:
         try:
-            img = PIL.Image.open(BytesIO(data))
+            img = Image.open(BytesIO(data))
             width, height = img.size
             content_type = img.format or ''
             if content_type.lower() == 'tiff':
@@ -120,12 +121,10 @@ def getImageInfo(data):
 
 
 def get_exif(image):
-    #
     exif_data = None
-    image_data = _ensure_data(image)
-
+    image_data = ensure_data(image)
     content_type, width, height = getImageInfo(image_data)
-    if content_type in ['image/jpeg', 'image/tiff']:
+    if content_type in ('image/jpeg', 'image/tiff'):
         # Only this two Image Types could have Exif informations
         # see http://www.cipa.jp/std/documents/e/DC-008-2012_E.pdf
         try:
@@ -143,6 +142,21 @@ def get_exif(image):
     return exif_data
 
 
+def load_exif(img):
+    return piexif.load(img.info['exif'])
+
+
+def img_exif_data(img):
+    width, height = img.size
+    exif_data = {
+        '0th': {
+            piexif.ImageIFD.XResolution: (width, 1),
+            piexif.ImageIFD.YResolution: (height, 1),
+        }
+    }
+    return exif_data
+
+
 def rotate_image(image_data, method=None):
     """
     Rotate Image if it has Exif Orientation Informations other than 1.
@@ -153,30 +167,25 @@ def rotate_image(image_data, method=None):
     """
     orientation = 1  # if not set assume correct orrinetation --> 1
     data = _ensure_data(image_data)
-    img = PIL.Image.open(BytesIO(data))
+    img = Image.open(BytesIO(data))
 
     exif_data = None
     if 'exif' in img.info:
         try:
-            exif_data = piexif.load(img.info['exif'])
-        except ValueError:
+            exif_data = load_exif(img)
+        except (ValueError):
             logger.warn('Exif information currupt')
 
         if exif_data and piexif.ImageIFD.Orientation in exif_data['0th']:
             orientation = exif_data['0th'][piexif.ImageIFD.Orientation]
-        if exif_data \
+
+        if      exif_data \
             and (not exif_data['0th'].get(piexif.ImageIFD.XResolution) or
                  not exif_data['0th'].get(piexif.ImageIFD.YResolution)):
             exif_data['0th'][piexif.ImageIFD.XResolution] = (img.width, 1)
             exif_data['0th'][piexif.ImageIFD.YResolution] = (img.height, 1)
     if exif_data is None:
-        width, height = img.size
-        exif_data = {
-            '0th': {
-                piexif.ImageIFD.XResolution: (width, 1),
-                piexif.ImageIFD.YResolution: (height, 1),
-            }
-        }
+        exif_data = img_exif_data(img)
 
     if method is not None:
         orientation = method
@@ -188,19 +197,19 @@ def rotate_image(image_data, method=None):
         # img = img
         pass
     elif orientation == 2:
-        img = img.transpose(PIL.Image.FLIP_LEFT_RIGHT)
+        img = img.transpose(Image.FLIP_LEFT_RIGHT)
     elif orientation == 3:
-        img = img.transpose(PIL.Image.ROTATE_180)
+        img = img.transpose(Image.ROTATE_180)
     elif orientation == 4:
-        img = img.transpose(PIL.Image.ROTATE_180).transpose(PIL.Image.FLIP_LEFT_RIGHT)
+        img = img.transpose(Image.ROTATE_180).transpose(Image.FLIP_LEFT_RIGHT)
     elif orientation == 5:
-        img = img.transpose(PIL.Image.ROTATE_270).transpose(PIL.Image.FLIP_LEFT_RIGHT)
+        img = img.transpose(Image.ROTATE_270).transpose(Image.FLIP_LEFT_RIGHT)
     elif orientation == 6:
-        img = img.transpose(PIL.Image.ROTATE_270)
+        img = img.transpose(Image.ROTATE_270)
     elif orientation == 7:
-        img = img.transpose(PIL.Image.ROTATE_90).transpose(PIL.Image.FLIP_LEFT_RIGHT)
+        img = img.transpose(Image.ROTATE_90).transpose(Image.FLIP_LEFT_RIGHT)
     elif orientation == 8:
-        img = img.transpose(PIL.Image.ROTATE_90)
+        img = img.transpose(Image.ROTATE_90)
 
     if orientation in [5, 6, 7, 8]:
         if      exif_data['0th'][piexif.ImageIFD.XResolution] \

@@ -15,6 +15,7 @@ from io import FileIO
 from io import BytesIO
 from io import StringIO
 from io import TextIOWrapper
+from io import BufferedReader
 
 from zope import schema
 from zope import interface
@@ -135,3 +136,4 @@ classImplements(FileIO, IFileIO)
 classImplements(BytesIO, IFileIO)
 classImplements(StringIO, IFileIO)
 classImplements(TextIOWrapper, IFileIO)
+classImplements(BufferedReader, IFileIO)
