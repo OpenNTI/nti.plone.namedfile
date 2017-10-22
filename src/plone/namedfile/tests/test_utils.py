@@ -9,6 +9,7 @@ from __future__ import absolute_import
 # pylint: disable=W0212,R0904
 
 from hamcrest import is_
+from hamcrest import has_length
 from hamcrest import assert_that
 from hamcrest import has_entries
 
@@ -16,6 +17,8 @@ import unittest
 from six import StringIO
 
 import fudge
+
+import piexif
 
 from plone.namedfile.tests import getFile
 from plone.namedfile.tests import SharedConfiguringTestLayer
@@ -32,7 +35,6 @@ from plone.namedfile.utils.jpeg_utils import process_jpeg
 from plone.namedfile.utils.png_utils import process_png
 
 from plone.namedfile.utils.tiff_utils import process_tiff
-from hamcrest.library.object.haslength import has_length
 
 
 class TestUtils(unittest.TestCase):
@@ -98,7 +100,10 @@ class TestUtils(unittest.TestCase):
     def test_invalid_exif(self, mock_gi):
         mock_gi.is_callable().returns(('image/jpeg', 10, 10))
         assert_that(get_exif(b'xxxxxx'),
-                    has_entries('0th',  {282: (10, 1), 283: (10, 1)}))
+                    has_entries('0th',  {
+                        piexif.ImageIFD.XResolution: (10, 1),
+                        piexif.ImageIFD.YResolution: (10, 1)
+                    }))
 
     def test_rotate_image(self):
         original = getFile('exif.jpg')
@@ -112,37 +117,50 @@ class TestUtils(unittest.TestCase):
         for method in range(1, 9):
             rotate_image(original, method)
 
-    @fudge.patch('plone.namedfile.utils.piexif')
-    def test_corrupt_exif(self, mock_pie):
+    @fudge.patch('plone.namedfile.utils.load_exif',
+                 'plone.namedfile.utils.img_exif_data')
+    def test_corrupt_exif(self, mock_pie, mock_ied):
         data = getFile('exif.jpg')
-        ifd = fudge.Fake().has_attr(XResolution=282).has_attr(YResolution=283)
-        ifd.has_attr(Orientation=284)
-        mock_pie.provides('load').raises(ValueError())
-        mock_pie.provides('dump').returns(data)
-        mock_pie.has_attr(ImageIFD=ifd)
-
-        data, width, height, exif_data = rotate_image(data)
-        assert_that(width, is_(480))
-        assert_that(height, is_(360))
-        assert_that(data, has_length(58275))
+        mock_pie.is_callable().raises(ValueError())
+        mock_ied.is_callable().returns({
+            '0th': {
+                piexif.ImageIFD.XResolution: None,
+                piexif.ImageIFD.YResolution: None,
+            }
+        })
+        data, width, height, exif_data = rotate_image(data, 5)
+        assert_that(width, is_(360))
+        assert_that(height, is_(480))
+        assert_that(data, has_length(25736))
         assert_that(exif_data,
                     has_entries('0th',
-                                has_entries(282, (480, 1),
-                                            283, (360, 1),
-                                            284, 1)))
+                                has_entries(piexif.ImageIFD.XResolution, (360, 1),
+                                            piexif.ImageIFD.YResolution, (480, 1),
+                                            piexif.ImageIFD.Orientation, 1)))
 
-    @fudge.patch('plone.namedfile.utils.piexif')
+    @fudge.patch('plone.namedfile.utils.load_exif')
     def test_no_exif_resolution(self, mock_pie):
         data = getFile('exif.jpg')
-        ifd = fudge.Fake().has_attr(XResolution=282).has_attr(YResolution=283)
-        ifd.has_attr(Orientation=284)
-        mock_pie.provides('load').returns({'0th': {}})
-        mock_pie.provides('dump').returns(data)
-        mock_pie.has_attr(ImageIFD=ifd)
-
-        _, _, _, exif_data = rotate_image(data)
+        mock_pie.is_callable().returns({'0th': {}})
+        _, _, _, exif_data = rotate_image(data, method=5)
         assert_that(exif_data,
                     has_entries('0th',
-                                has_entries(282, (480, 1),
-                                            283, (360, 1),
-                                            284, 1)))
+                                has_entries(piexif.ImageIFD.XResolution, (360, 1),
+                                            piexif.ImageIFD.YResolution, (480, 1))))
+
+    @fudge.patch('plone.namedfile.utils.load_exif')
+    def test_dump_error(self, mock_pie):
+        data = getFile('exif.jpg')
+        exif_data = {
+            '0th': {
+                piexif.ImageIFD.XResolution: (480, 1),
+                piexif.ImageIFD.YResolution: (360, 1),
+            },
+            'Exif': {
+                piexif.ExifIFD.SceneType: None
+            }
+        }
+        mock_pie.is_callable().returns(exif_data)
+        _, width, height, _ = rotate_image(data, method=5)
+        assert_that(width, is_(360))
+        assert_that(height, is_(480))
