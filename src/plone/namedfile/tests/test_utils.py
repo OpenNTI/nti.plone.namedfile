@@ -76,7 +76,7 @@ class TestUtils(unittest.TestCase):
 
     @fudge.patch('plone.namedfile.utils.Image')
     def test_get_image_info_invalid_image(self, mock_img):
-        mock_img.provides('open').raises(Exception)
+        mock_img.provides('open').raises(Exception())
         assert_that(getImageInfo(b'xxxx'),
                     is_(('', -1, -1)))
 
@@ -101,9 +101,48 @@ class TestUtils(unittest.TestCase):
                     has_entries('0th',  {282: (10, 1), 283: (10, 1)}))
 
     def test_rotate_image(self):
-        data, width, height, exif_data = rotate_image(getFile('exif.jpg'))
+        original = getFile('exif.jpg')
+        data, width, height, exif_data = rotate_image(original)
         assert_that(width, is_(480))
         assert_that(height, is_(360))
         assert_that(data, has_length(32473))
         assert_that(list(exif_data.keys()),
                     is_(['Exif', '0th', 'Interop', '1st', 'thumbnail', 'GPS']))
+
+        for method in range(1, 9):
+            rotate_image(original, method)
+
+    @fudge.patch('plone.namedfile.utils.piexif')
+    def test_corrupt_exif(self, mock_pie):
+        data = getFile('exif.jpg')
+        ifd = fudge.Fake().has_attr(XResolution=282).has_attr(YResolution=283)
+        ifd.has_attr(Orientation=284)
+        mock_pie.provides('load').raises(ValueError())
+        mock_pie.provides('dump').returns(data)
+        mock_pie.has_attr(ImageIFD=ifd)
+
+        data, width, height, exif_data = rotate_image(data)
+        assert_that(width, is_(480))
+        assert_that(height, is_(360))
+        assert_that(data, has_length(58275))
+        assert_that(exif_data,
+                    has_entries('0th',
+                                has_entries(282, (480, 1),
+                                            283, (360, 1),
+                                            284, 1)))
+
+    @fudge.patch('plone.namedfile.utils.piexif')
+    def test_no_exif_resolution(self, mock_pie):
+        data = getFile('exif.jpg')
+        ifd = fudge.Fake().has_attr(XResolution=282).has_attr(YResolution=283)
+        ifd.has_attr(Orientation=284)
+        mock_pie.provides('load').returns({'0th': {}})
+        mock_pie.provides('dump').returns(data)
+        mock_pie.has_attr(ImageIFD=ifd)
+
+        _, _, _, exif_data = rotate_image(data)
+        assert_that(exif_data,
+                    has_entries('0th',
+                                has_entries(282, (480, 1),
+                                            283, (360, 1),
+                                            284, 1)))
