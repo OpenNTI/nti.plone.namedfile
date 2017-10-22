@@ -11,13 +11,17 @@ from __future__ import absolute_import
 from hamcrest import is_
 from hamcrest import assert_that
 
-import fudge
 import unittest
+from six import StringIO
+
+import fudge
 
 from plone.namedfile.tests import getFile
 from plone.namedfile.tests import SharedConfiguringTestLayer
 
+from plone.namedfile.utils import ensure_data
 from plone.namedfile.utils import safe_basename
+from plone.namedfile.utils import get_contenttype
 
 from plone.namedfile.utils.jpeg_utils import process_jpeg
 
@@ -36,20 +40,28 @@ class TestUtils(unittest.TestCase):
 
         assert_that(safe_basename('F:\FARMYARD\COWS\DAISY.TXT'),
                     is_('DAISY.TXT'))
-        
+
         assert_that(safe_basename('Macintosh Farmyard:Cows:Daisy Text File'),
                     is_('Daisy Text File'))
+
+    def test_get_contenttype(self):
+        assert_that(get_contenttype(),
+                    is_('application/octet-stream'))
+
+    def test_ensure_data(self):
+        assert_that(ensure_data(StringIO(u'data')),
+                    is_(b'data'))
 
     def test_png(self):
         data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\x10\x00\x00\x00\x0f'
         assert_that(process_png(data),
                     is_(('image/png', 16, 15)))
-        
+
     def test_invalid_jpeg(self):
         data = b'\377\330\r\n\x1a\n\x00\x0f'
         assert_that(process_jpeg(data),
                     is_(('image/jpeg', -1, -1)))
-        
+
     @fudge.patch('plone.namedfile.utils.tiff_utils._tiff_type')
     def test_invalid_tiff_type(self, mock_tt):
         mock_tt.is_callable().returns(-1)
