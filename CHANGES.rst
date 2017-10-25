@@ -2,6 +2,24 @@
  Changes
 =========
 
+5.0.0 (unreleased)
+------------------
+
+New features:
+
+- Add support for PyPy
+- Add support for Python 3
+- Remove ``unicode_literals``.
+- Refactor testing layer
+
+Incompatibilities:
+
+- Remove the entire Plone Stack dependencies and associated code
+- Remove zope schema definitions
+- Remove marshaller classes
+- Remove scaling classes
+
+
 4.2.4 (unreleased)
 ------------------
 
