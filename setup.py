@@ -7,6 +7,7 @@ entry_points = {
 }
 
 TESTS_REQUIRE = [
+    'fudge',
     'nti.testing',
     'zope.dottedname',
     'zope.testrunner',
@@ -45,6 +46,7 @@ setup(
     packages=find_packages("src"),
     package_dir={'': 'src'},
     include_package_data=True,
+    namespace_packages=['plone'],
     install_requires=[
         'setuptools',
         'piexif',
