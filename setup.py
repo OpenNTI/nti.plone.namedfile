@@ -25,7 +25,11 @@ setup(
     author='Laurence Rowe, Martin Aspeli',
     author_email='plone-developers@lists.sourceforge.net',
     description="File types and fields for images, files and blob files with filenames",
-    long_description=(_read('README.rst') + '\n\n' + _read('CHANGES.rst')),
+    long_description=(
+        _read('README.rst')
+        + '\n\n'
+        + _read("CHANGES.rst")
+    ),
     license="BSD",
     keywords='plone named file image blob',
     classifiers=[
