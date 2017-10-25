@@ -20,7 +20,7 @@ def _read(fname):
 
 
 setup(
-    name='plone.namedfile',
+    name='nti.plone.namedfile',
     version=_read('version.txt').strip(),
     author='Laurence Rowe, Martin Aspeli',
     author_email='plone-developers@lists.sourceforge.net',
