@@ -5,14 +5,6 @@
 4.2.4 (unreleased)
 ------------------
 
-Breaking changes:
-
-- *add item here*
-
-New features:
-
-- *add item here*
-
 Bug fixes:
 
 - remove mention of "retina" (https://github.com/plone/Products.CMFPlone/issues/2123)
