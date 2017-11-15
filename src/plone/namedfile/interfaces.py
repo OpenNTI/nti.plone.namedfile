@@ -20,12 +20,14 @@ from zope import interface
 
 from zope.interface import classImplements
 
+from plone.namedfile.schema import EncodingBytesLine
+
 HAVE_BLOBS = True
 
 
 class IFile(interface.Interface):
 
-    contentType = schema.BytesLine(
+    contentType = EncodingBytesLine(
         title=u'Content Type',
         description=u'The content type identifies the type of data.',
         default=b'',
