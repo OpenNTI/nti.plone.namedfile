@@ -31,5 +31,5 @@ class EncodingBytesLine(BytesLine):
 
     def fromUnicode(self, value):
         if isinstance(value, six.string_types):
-            return value.encode('utf-8')
+            value = value.encode('utf-8')
         return value
