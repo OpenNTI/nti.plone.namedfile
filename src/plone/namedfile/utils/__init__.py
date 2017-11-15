@@ -18,8 +18,10 @@ import piexif
 
 from PIL import Image
 
-from plone.namedfile.utils.png_utils import process_png
 from plone.namedfile.utils.jpeg_utils import process_jpeg
+
+from plone.namedfile.utils.png_utils import process_png
+
 from plone.namedfile.utils.tiff_utils import process_tiff
 
 logger = __import__('logging').getLogger(__name__)
@@ -132,7 +134,7 @@ def get_exif(image):
         except Exception as e:
             # TODO: determine wich error really happens
             # Should happen if data is to short --> first_bytes
-            logger.warn(e)
+            logger.warning(e)
             exif_data = exif_data = {
                 '0th': {
                     piexif.ImageIFD.XResolution: (width, 1),
@@ -174,7 +176,7 @@ def rotate_image(image_data, method=None):
         try:
             exif_data = load_exif(img)
         except (ValueError):
-            logger.warn('Exif information currupt')
+            logger.warning('Exif information currupt')
 
         if exif_data and piexif.ImageIFD.Orientation in exif_data['0th']:
             orientation = exif_data['0th'][piexif.ImageIFD.Orientation]
@@ -228,7 +230,7 @@ def rotate_image(image_data, method=None):
     try:
         exif_bytes = piexif.dump(exif_data)
     except Exception as e:
-        logger.warn(e)
+        logger.warning(e)
         del exif_data['Exif'][piexif.ExifIFD.SceneType]
         # This Element piexif.ExifIFD.SceneType cause error on dump
         exif_bytes = piexif.dump(exif_data)
