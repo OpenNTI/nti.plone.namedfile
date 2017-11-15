@@ -18,8 +18,10 @@ import piexif
 
 from PIL import Image
 
-from plone.namedfile.utils.png_utils import process_png
 from plone.namedfile.utils.jpeg_utils import process_jpeg
+
+from plone.namedfile.utils.png_utils import process_png
+
 from plone.namedfile.utils.tiff_utils import process_tiff
 
 logger = __import__('logging').getLogger(__name__)
