@@ -228,7 +228,7 @@ def rotate_image(image_data, method=None):
     try:
         exif_bytes = piexif.dump(exif_data)
     except Exception as e:
-        logger.warn(e)
+        logger.warning(e)
         del exif_data['Exif'][piexif.ExifIFD.SceneType]
         # This Element piexif.ExifIFD.SceneType cause error on dump
         exif_bytes = piexif.dump(exif_data)
