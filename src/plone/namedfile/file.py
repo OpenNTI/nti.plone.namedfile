@@ -8,6 +8,12 @@ and are licensed under the ZPL.
 .. $Id$
 """
 
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+
+#  pylint: disable=attribute-defined-outside-init
+
 import six
 
 from persistent import Persistent
@@ -269,6 +275,7 @@ class NamedFile(Persistent):
 
             # Now make it a ghost to free the memory.  We
             # don't need it anymore!
+            # pylint: disable=protected-access
             data._p_changed = None
 
             next_ = data
@@ -294,6 +301,7 @@ class NamedImage(NamedFile):
     """
     filename = FieldProperty(INamedFile['filename'])
 
+    # pylint: disable=super-init-not-called
     def __init__(self, data=b'', contentType=b'', filename=None):
         self.contentType, self._width, self._height = getImageInfo(data)
         self.filename = filename

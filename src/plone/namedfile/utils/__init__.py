@@ -112,7 +112,7 @@ def getImageInfo(data):
             content_type = img.format or ''
             if content_type.lower() == 'tiff':
                 content_type = 'image/tiff'
-        except Exception as e:
+        except Exception as e:  # pylint:disable=broad-except
             logger.exception(e)
     # return
     logger.debug('Image Info (Type: %s, Width: %s, Height: %s)',
@@ -131,8 +131,8 @@ def get_exif(image):
         # see http://www.cipa.jp/std/documents/e/DC-008-2012_E.pdf
         try:
             exif_data = piexif.load(image_data)
-        except Exception as e:
-            # TODO: determine wich error really happens
+        except Exception as e:  # pylint:disable=broad-except
+            # We need to determine wich error really happens
             # Should happen if data is to short --> first_bytes
             logger.warning(e)
             exif_data = exif_data = {
@@ -229,7 +229,7 @@ def rotate_image(image_data, method=None):
     exif_data['0th'][piexif.ImageIFD.Orientation] = 1
     try:
         exif_bytes = piexif.dump(exif_data)
-    except Exception as e:
+    except Exception as e:  # pylint:disable=broad-except
         logger.warning(e)
         del exif_data['Exif'][piexif.ExifIFD.SceneType]
         # This Element piexif.ExifIFD.SceneType cause error on dump
