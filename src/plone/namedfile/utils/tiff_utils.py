@@ -73,7 +73,7 @@ def process_tiff(data):
             if width > -1 and height > -1:
                 content_type = 'image/tiff'
                 break
-    except Exception as e:
+    except Exception as e:  # pylint:disable=broad-except
         logger.error("Unknown image format. %s", e)
     # return
     return content_type, width, height

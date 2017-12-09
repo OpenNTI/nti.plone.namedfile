@@ -5,8 +5,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
 
-# disable: accessing protected members, too many methods
-# pylint: disable=W0212,R0904
+# pylint: disable=protected-access,too-many-public-methods
 
 from hamcrest import is_
 from hamcrest import equal_to
@@ -62,6 +61,7 @@ class TestImage(unittest.TestCase):
         assert_that(image.getImageSize(), is_((1536, 532)))
 
     def testInterface(self):
+        # pylint: disable=no-value-for-parameter
         self.assertTrue(INamedImage.implementedBy(NamedImage))
         self.assertTrue(verifyClass(INamedImage, NamedImage))
 

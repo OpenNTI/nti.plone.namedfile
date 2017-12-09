@@ -59,6 +59,7 @@ class FileChunkStorable(object):
         with blob.open('w') as fp:
             chunk = data
             while chunk:
+                # pylint: disable=protected-access
                 fp.write(chunk._data)
                 chunk = chunk.next
 

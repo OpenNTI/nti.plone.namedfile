@@ -29,6 +29,7 @@ class EncodingBytesLine(BytesLine):
         super(EncodingBytesLine, self).validate(value)
         return value  # tests
 
+    # pylint: disable=arguments-differ
     def fromUnicode(self, value):
         if isinstance(value, six.string_types):
             value = value.encode('utf-8')
